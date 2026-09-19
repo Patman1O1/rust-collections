@@ -1,5 +1,14 @@
-[package]
-name = "rust-collections"
+[workspace]
+resolver = "3"
+members = [
+    "btree",
+    "htable",
+    "list",
+    "vec"
+]
+
+[workspace.package]
+name = "collections"
 version = "0.1.0"
 authors = ["Patman1O1"]
 edition = "2024"
@@ -11,5 +20,5 @@ license-file = "LICENSE"
 build = "build.rs"
 
 
-[dependencies]
+[workspace.dependencies]
 allocator-api2 = "0.4.0"
