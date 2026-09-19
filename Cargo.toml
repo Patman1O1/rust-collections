@@ -12,3 +12,4 @@ build = "build.rs"
 
 
 [dependencies]
+allocator-api2 = "0.4.0"
