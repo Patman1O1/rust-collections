@@ -1,0 +1,59 @@
+name: "Create Project"
+
+on:
+  workflow_dispatch:
+    inputs:
+      type:
+        description: "The type of project that will be created."
+        required: true
+        type: choice
+        options:
+          - "Executable"
+          - "Library"
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  create_project:
+    if: github.repository != 'Patman1O1/rust-project-template'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Configure Bot With GitHub
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Install Tools
+        run: pip install -e "${GITHUB_WORKSPACE}"
+
+      - name: Create Project
+        run: |
+          create-project                                   \
+            "${{ github.event.repository.name }}"          \
+            "${{ github.event.inputs.type }}"              \
+            "${{ github.actor }}"                          \
+            "${{ github.event.repository.description }}"
+
+      - name: Commit changes
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo "::error::create-project produced no changes"
+            exit 1
+          fi
+          git commit -m "Create ${GITHUB_REPOSITORY}"
+          git push
