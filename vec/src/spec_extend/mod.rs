@@ -1,60 +1,99 @@
-use core::clone::TrivialClone;
-use core::iter::TrustedLen;
-use core::slice;
+// ── Core Aliases ────────────────────────────────────────────────────────────
+use core::{
+    clone::{TrivialClone},
+    iter::{TrustedLen},
+    slice::{self}
+};
 
-use super::{IntoIter, Vec};
-use crate::alloc::Allocator;
+// ── Super Aliases ───────────────────────────────────────────────────────────
+use super::{
+    IntoIter,
+    Vec
+};
 
-// Specialization trait used for Vec::extend
+// ── Crate Aliases ───────────────────────────────────────────────────────────
+use crate::{
+    alloc::{Allocator}
+};
+
+// ── Modules ─────────────────────────────────────────────────────────────────
+#[cfg(test)]
+mod tests;
+
+// ── `trait SpecExtend<T, I>` Definition ─────────────────────────────────────
 pub(super) trait SpecExtend<T, I> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     fn spec_extend(&mut self, iter: I);
 }
 
+// ── `SpecExtend<T, I> for Vec<T, A>` Implementation ─────────────────────────
+// where
+//      I: Iterator<Item = T>
+//      A: Allocator
 impl<T, I, A: Allocator> SpecExtend<T, I> for Vec<T, A>
 where
     I: Iterator<Item = T>,
 {
-    default fn spec_extend(&mut self, iter: I) {
-        self.extend_desugared(iter)
-    }
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    default fn spec_extend(&mut self, iter: I) { todo!(); }
 }
 
+// ── `SpecExtend<T, I> for Vec<T, A>` Implementation ─────────────────────────
+// where
+//      I: TrustedLen<Item = T>
+//      A: Allocator
 impl<T, I, A: Allocator> SpecExtend<T, I> for Vec<T, A>
 where
     I: TrustedLen<Item = T>,
 {
-    default fn spec_extend(&mut self, iterator: I) {
-        self.extend_trusted(iterator)
-    }
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    default fn spec_extend(&mut self, iterator: I) { todo!(); }
 }
 
-impl<T, A1: Allocator, A2: Allocator> SpecExtend<T, IntoIter<T, A2>> for Vec<T, A1> {
-    fn spec_extend(&mut self, iterator: IntoIter<T, A2>) {
-        // ignore-tidy-undocumented-unsafe
-        unsafe {
-            self.append_elements(iterator.as_slice() as _);
-        }
-        iterator.forget_remaining_elements_and_dealloc();
-    }
+// ── `SpecExtend<T, IntoIter<T, A2>> for Vec<T, A1>` Implementation ──────────
+// where
+//      A1: Allocator
+//      A2: Allocator
+impl<
+    T,
+    A1: Allocator,
+    A2: Allocator
+> SpecExtend<T, IntoIter<T, A2>> for Vec<T, A1> {
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    fn spec_extend(&mut self, iterator: IntoIter<T, A2>) { todo!(); }
 }
 
+// ── `SpecExtend<&'a T, I> for Vec<T, A>` Implementation ─────────────────────
+// where
+//      T: 'a + Clone
+//      I: Iterator<Item = &'a T>
+//      A: Allocator
 impl<'a, T: 'a, I, A: Allocator> SpecExtend<&'a T, I> for Vec<T, A>
 where
     I: Iterator<Item = &'a T>,
     T: Clone,
 {
-    default fn spec_extend(&mut self, iterator: I) {
-        self.spec_extend(iterator.cloned())
-    }
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    default fn spec_extend(&mut self, iterator: I) { todo!(); }
 }
 
-impl<'a, T: 'a, A: Allocator> SpecExtend<&'a T, slice::Iter<'a, T>> for Vec<T, A>
+// ── `SpecExtend<&'a T, slice::Iter<'a, T>> for Vec<T, A>` Implementation ────
+// where
+//      T: 'a + TrivialClone
+//      A: Allocator
+impl<
+    'a,
+    T: 'a,
+    A: Allocator
+> SpecExtend<&'a T, slice::Iter<'a, T>> for Vec<T, A>
 where
     T: TrivialClone,
 {
-    fn spec_extend(&mut self, iterator: slice::Iter<'a, T>) {
-        let slice = iterator.as_slice();
-        // ignore-tidy-undocumented-unsafe
-        unsafe { self.append_elements(slice) };
-    }
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    fn spec_extend(&mut self, iterator: slice::Iter<'a, T>) { todo!(); }
 }
