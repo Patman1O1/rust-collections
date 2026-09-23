@@ -2,7 +2,6 @@
 use core::{
     borrow::{ToOwned},
     clone::TrivialClone,
-    collections::TryReserveError,
     cmp::{
         self,
         Ordering
@@ -48,21 +47,28 @@ use core::{
 
 // ── Standard Libary Aliases ─────────────────────────────────────────────────
 use std::{
-    boxed::{Box}
+    borrow::ToOwned,
+    boxed::Box,
+    collections::TryReserveError
 };
 
 // ── Self Aliases ────────────────────────────────────────────────────────────
+// Public
 pub use self::{
     drain::Drain,
     extract_if::ExtractIf,
     splice::Splice,
     into_iter::IntoIter,
-    is_zero::IsZero,
     peek_mut::PeekMut
 };
 
-pub(crate) use self::in_place_collect::AsVecIntoIter;
+// Public (Crate Only)
+pub(crate) use self::{
+    in_place_collect::AsVecIntoIter,
+    is_zero::IsZero
+};
 
+// Private
 use self::{
     in_place_drop::{
         InPlaceDrop,
@@ -76,12 +82,15 @@ use self::{
 
 // ── Allocator API 2 Aliases ─────────────────────────────────────────────────
 use allocator_api2::{
-    Allocator,
-    Global
+    alloc::{
+        Allocator,
+        Global
+    }
 };
 
+
 use crate::borrow::{Cow}; // Need to resolve
-use crate::raw_vec::RawVec;
+//use crate::raw_vec::RawVec;
 
 
 // ── Modules ─────────────────────────────────────────────────────────────────
@@ -109,7 +118,11 @@ pub struct Vec<T,  A: Allocator = Global> {
     len: usize
 }
 
-// ── `struct Vec<T>` Implementation ──────────────────────────────────────────
+// ── `trait Recyclable<From>` Definition ─────────────────────────────────────
+unsafe trait Recyclable<From: Sized>: Sized {}
+
+
+// ── `Vec<T>` Implementation ─────────────────────────────────────────────────
 impl<T> Vec<T> {
     // ── Functions ───────────────────────────────────────────────────────────
     // TODO
@@ -161,22 +174,9 @@ impl<T> Vec<T> {
     { todo!(); }
 }
 
-// ── `struct Vec<T, A>` Implementations ──────────────────────────────────────
-// where A: Allocator + Destruct
-const impl<T, A: [const] Allocator + [const] Destruct> Vec<T, A> {
-    // ── Functions ───────────────────────────────────────────────────────────
-    // TODO
-    pub fn with_capacity_in(capacity: usize, alloc: A) -> Self { todo!(); }
-
-    // ── Methods ─────────────────────────────────────────────────────────────
-    // TODO
-    pub fn push(&mut self, value: T) { todo!(); }
-
-    // TODO
-    pub fn push_mut(&mut self, value: T) -> &mut T { todo!(); }
-}
-
-// ── `struct Vec<T, A>` Implementations ──────────────────────────────────────
+// ── `Vec<T, A>` Implementations ─────────────────────────────────────────────
+// where
+//      A: Allocator
 impl<T, A: Allocator> Vec<T, A> {
     // ── Functions ───────────────────────────────────────────────────────────
     // TODO
@@ -216,7 +216,6 @@ impl<T, A: Allocator> Vec<T, A> {
     }
 
     // TODO
-    #[inline]
     pub const fn capacity(&self) -> usize { todo!(); }
 
     // TODO
@@ -420,18 +419,63 @@ impl<T, A: Allocator> Vec<T, A> {
     where
         U: Recyclable<T>,
     { todo!(); }
+
+    // TODO
+    fn extend_desugared<I: Iterator<Item = T>>(&mut self, mut iterator: I) {
+        todo!();
+    }
+
+    // TODO
+    fn extend_trusted(&mut self, iterator: impl iter::TrustedLen<Item = T>) {
+        todo!();
+    }
+
+    // TODO
+    pub fn splice<R, I>(
+        &mut self,
+        range: R,
+        replace_with: I
+    ) -> Splice<'_, I::IntoIter, A>
+    where
+        R: RangeBounds<usize>,
+        I: IntoIterator<Item = T>,
+    { todo!(); }
+
+    // TODO
+    pub fn extract_if<F, R>(
+        &mut self,
+        range: R,
+        filter: F
+    ) -> ExtractIf<'_, T, F, A>
+    where
+        F: FnMut(&mut T) -> bool,
+        R: RangeBounds<usize>,
+    { todo!(); }
+
 }
 
-unsafe trait Recyclable<From: Sized>: Sized {}
+// ── `Vec<T, A>` Implementations ─────────────────────────────────────────────
+// where
+//      A: Allocator + Destruct
+impl<T, A: Allocator + Destruct> Vec<T, A> {
+    // ── Functions ───────────────────────────────────────────────────────────
+    // TODO
+    pub fn with_capacity_in(capacity: usize, alloc: A) -> Self { todo!(); }
 
-unsafe impl<From, To> Recyclable<From> for To
-where
-    for<'a> &'a MaybeUninit<To>: TransmuteFrom<&'a MaybeUninit<From>, { Assume::SAFETY }>,
-    for<'a> &'a MaybeUninit<From>: TransmuteFrom<&'a MaybeUninit<To>, { Assume::SAFETY }>,
-{
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    pub fn push(&mut self, value: T) { todo!(); }
+
+    // TODO
+    pub fn push_mut(&mut self, value: T) -> &mut T { todo!(); }
 }
 
+// ── `Vec<T: Clone, A: Allocator>` Implementation ────────────────────────────
+// where
+//      T: Clone
+//      A: Allocator
 impl<T: Clone, A: Allocator> Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     pub fn resize(&mut self, new_len: usize, value: T) { todo!(); }
 
@@ -443,9 +487,16 @@ impl<T: Clone, A: Allocator> Vec<T, A> {
     where
         R: RangeBounds<usize>,
     { todo!(); }
+
+     // TODO
+    fn extend_with(&mut self, n: usize, value: T) { todo!(); }
 }
 
+// ── `Vec<u8, A: Allocator>` Implementation ──────────────────────────────────
+// where
+//      A: Allocator
 impl<A: Allocator> Vec<u8, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     pub(crate) fn try_extend_from_slice_of_bytes(
         &mut self,
@@ -453,20 +504,50 @@ impl<A: Allocator> Vec<u8, A> {
     ) -> Result<(), TryReserveError> { todo!(); }
 }
 
+// ── `Vec<[T; N], A>` Implementation ─────────────────────────────────────────
+// where
+//      A: Allocator
 impl<T, A: Allocator, const N: usize> Vec<[T; N], A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     pub fn into_flattened(self) -> Vec<T, A> { todo!(); }
 }
 
-impl<T: Clone, A: Allocator> Vec<T, A> {
-    // TODO
-    fn extend_with(&mut self, n: usize, value: T) { todo!(); }
-}
-
+// ── `Vec<T: PartialEq, A: Allocator>` Implementation ────────────────────────
+// where
+//      T: PartialEq
+//      A: Allocator
 impl<T: PartialEq, A: Allocator> Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     pub fn dedup(&mut self) { todo!(); }
 }
+
+// ── `Recyclable<From>` Implementations ──────────────────────────────────────
+unsafe impl<From, To> Recyclable<From> for To
+where
+    for<'a> &'a MaybeUninit<To>: TransmuteFrom<&'a MaybeUninit<From>, {
+        Assume::SAFETY
+    }>,
+
+    for<'a> &'a MaybeUninit<From>: TransmuteFrom<&'a MaybeUninit<To>, {
+        Assume::SAFETY
+    }>,
+{}
+
+// ── `Clone for Vec<T, A>` Implementation ────────────────────────────────────
+// where 
+//      T: Clone
+//      A: Allocator + Clone
+impl<T: Clone, A: Allocator + Clone> Clone for Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    fn clone(&self) -> Self { todo!(); }
+
+    // TODO
+    fn clone_from(&mut self, source: &Self) { todo!(); }
+}
+
 
 // TODO
 pub fn from_elem<T: Clone>(elem: T, n: usize) -> Vec<T> {
@@ -480,93 +561,136 @@ pub fn from_elem_in<T: Clone, A: Allocator>(
     alloc: A
 ) -> Vec<T, A> { todo!(); }
 
-trait ExtendFromWithinSpec {
-    unsafe fn spec_extend_from_within(&mut self, src: Range<usize>);
-}
-
+// ── `ExtendFromWithinSpec for Vec<T, A>` Implementation ─────────────────────
+// where
+//      T:Clone
+//      A: Allocator
 impl<T: Clone, A: Allocator> ExtendFromWithinSpec for Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     default unsafe fn spec_extend_from_within(&mut self, src: Range<usize>) {
         todo!();
     }
 }
 
+// ── `ExtendFromWithinSpec for Vec<T, A>` Implementation ─────────────────────
+// where
+//      T: TrivialClone
 impl<T: TrivialClone, A: Allocator> ExtendFromWithinSpec for Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     unsafe fn spec_extend_from_within(&mut self, src: Range<usize>) {
         todo!();
     }
 }
 
-const impl<T, A: Allocator> ops::Deref for Vec<T, A> {
+// ── `Deref for Vec<T, A>` Implementation ────────────────────────────────────
+// where
+//      T: Allocator
+impl<T, A: Allocator> ops::Deref for Vec<T, A> {
+    // ── Types ───────────────────────────────────────────────────────────────
     type Target = [T];
     
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn deref(&self) -> &[T] { todo!(); }
 }
 
-const impl<T, A: Allocator> ops::DerefMut for Vec<T, A> {
+// ── `DerefMut for Vec<T, A>` Implementation ─────────────────────────────────
+// where
+//      T: Allocator
+impl<T, A: Allocator> ops::DerefMut for Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn deref_mut(&mut self) -> &mut [T] { todo!(); }
 }
 
+// ── `DerefPure for Vec<T, A>` Implementation ────────────────────────────────
+// where
+//      T: Allocator
 unsafe impl<T, A: Allocator> ops::DerefPure for Vec<T, A> {}
 
-impl<T: Clone, A: Allocator + Clone> Clone for Vec<T, A> {
-    // TODO
-    fn clone(&self) -> Self { todo!(); }
-
-    // TODO
-    fn clone_from(&mut self, source: &Self) { todo!(); }
-}
-
+// ── `Hash for Vec<T, A>` Implementation ─────────────────────────────────────
+// where
+//      T: Hash
+//      A: Allocator
 impl<T: Hash, A: Allocator> Hash for Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn hash<H: Hasher>(&self, state: &mut H) { todo!(); }
 }
 
-const impl<T, I: [const] SliceIndex<[T]>, A: Allocator> Index<I> for Vec<T, A> {
+// ── `Index<I> for Vec<T, A>` Implementation ─────────────────────────────────
+// where
+//      I: SliceIndex<[T]>
+//      A: Allocator
+impl<T, I: SliceIndex<[T]>, A: Allocator> Index<I> for Vec<T, A> {
+    // ── Types ───────────────────────────────────────────────────────────────
     type Output = I::Output;
 
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn index(&self, index: I) -> &Self::Output { todo!(); }
 }
 
-const impl<T, I: [const] SliceIndex<[T]>, A: Allocator> IndexMut<I> for Vec<T, A> {
+// ── `IndexMut<I> for Vec<T, A>` Implementation ──────────────────────────────
+// where
+//      I: SliceIndex<[T]>
+//      A: Allocator
+impl<T, I: SliceIndex<[T]>, A: Allocator> IndexMut<I> for Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn index_mut(&mut self, index: I) -> &mut Self::Output { todo!(); }
 }
 
+// ── `FromIterator<T> for Vec<T>` Implementation ─────────────────────────────
 impl<T> FromIterator<T> for Vec<T> {
+    // ── Functions ───────────────────────────────────────────────────────────
     // TODO
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Vec<T> { todo!(); }
 }
 
+// ── `IntoIterator for Vec<T, A>` Implementation ─────────────────────────────
+// where
+//      A: Allocator
 impl<T, A: Allocator> IntoIterator for Vec<T, A> {
+    // ── Types ───────────────────────────────────────────────────────────────
     type Item = T;
+
     type IntoIter = IntoIter<T, A>;
 
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn into_iter(self) -> Self::IntoIter { todo!(); }
 }
 
+// ── `IntoIterator for &'a Vec<T, A>` Implementation ─────────────────────────
 impl<'a, T, A: Allocator> IntoIterator for &'a Vec<T, A> {
+    // ── Types ───────────────────────────────────────────────────────────────
     type Item = &'a T;
+
     type IntoIter = slice::Iter<'a, T>;
 
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn into_iter(self) -> Self::IntoIter { todo!(); }
 }
 
+// ── `IntoIterator for &'a mut Vec<T, A>` Implementation ─────────────────────
 impl<'a, T, A: Allocator> IntoIterator for &'a mut Vec<T, A> {
+    // ── Types ───────────────────────────────────────────────────────────────
     type Item = &'a mut T;
+
     type IntoIter = slice::IterMut<'a, T>;
 
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn into_iter(self) -> Self::IntoIter { todo!(); }
 }
 
+// ── `Extend<T> for Vec<T, A>` Implementation ────────────────────────────────
 impl<T, A: Allocator> Extend<T> for Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) { todo!(); }
 
@@ -580,39 +704,9 @@ impl<T, A: Allocator> Extend<T> for Vec<T, A> {
     unsafe fn extend_one_unchecked(&mut self, item: T) { todo!(); }
 }
 
-impl<T, A: Allocator> Vec<T, A> {
-    // TODO
-    fn extend_desugared<I: Iterator<Item = T>>(&mut self, mut iterator: I) {
-        todo!();
-    }
-
-    // TODO
-    fn extend_trusted(&mut self, iterator: impl iter::TrustedLen<Item = T>) {
-        todo!();
-    }
-
-    pub fn splice<R, I>(
-        &mut self,
-        range: R,
-        replace_with: I
-    ) -> Splice<'_, I::IntoIter, A>
-    where
-        R: RangeBounds<usize>,
-        I: IntoIterator<Item = T>,
-    {}
-
-    pub fn extract_if<F, R>(
-        &mut self,
-        range: R,
-        filter: F
-    ) -> ExtractIf<'_, T, F, A>
-    where
-        F: FnMut(&mut T) -> bool,
-        R: RangeBounds<usize>,
-    {}
-}
-
+// ── `Extend<&'a T> for Vec<T, A>` Implementation ────────────────────────────
 impl<'a, T: Copy + 'a, A: Allocator> Extend<&'a T> for Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn extend<I: IntoIterator<Item = &'a T>>(&mut self, iter: I) { todo!(); }
 
@@ -626,113 +720,203 @@ impl<'a, T: Copy + 'a, A: Allocator> Extend<&'a T> for Vec<T, A> {
     unsafe fn extend_one_unchecked(&mut self, &item: &'a T) { todo!(); }
 }
 
+// ── `PartialOrder<Vec<T, A2>> for Vec<T, A1>` Implementation ────────────────
+// where
+//      T: PartialOrd
+//      A1: Allocator
+//      A2: Allocator
 impl<T, A1, A2> PartialOrd<Vec<T, A2>> for Vec<T, A1>
 where
     T: PartialOrd,
     A1: Allocator,
-    A2: Allocator,
-{}
+    A2: Allocator
+{
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    fn partial_cmp(&self, other: &Vec<T, A2>) -> Option<Ordering> {
+        todo!();
+    }
+}
 
+// ── `Eq for Vec<T, A>` Implementation ───────────────────────────────────────
+// where
+//      T: Eq
+//      A: Allocator
 impl<T: Eq, A: Allocator> Eq for Vec<T, A> {}
 
+// ── `Ord for Vec<T, A>` Implementation ──────────────────────────────────────
+// where
+//      T: Ord
+//      A: Allocator
 impl<T: Ord, A: Allocator> Ord for Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn cmp(&self, other: &Self) -> Ordering { todo!(); }
 }
 
-const unsafe impl<
-    #[may_dangle] T: [const] Destruct,
-    A: [const] Allocator + [const] Destruct> Drop for Vec<T, A>
+// ── `Drop for Vec<T, A>` Implementation ─────────────────────────────────────
+// where
+//      T: Destruct
+//      A: Allocator + Destruct
+unsafe impl<
+    #[may_dangle] T: Destruct,
+    A: Allocator + Destruct> Drop for Vec<T, A>
 {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn drop(&mut self) { todo!(); }
 }
 
-const impl<T> Default for Vec<T> {
+// ── `Default for Vec<T>` Implementation ─────────────────────────────────────
+impl<T> Default for Vec<T> {
+    // ── Functions ───────────────────────────────────────────────────────────
     // TODO
     fn default() -> Vec<T> { todo!(); }
 }
 
+// ── `Debug for Vec<T, A>` Implementation ────────────────────────────────────
+// where
+//      T: Debug,
+//      A: Allocator
 impl<T: fmt::Debug, A: Allocator> fmt::Debug for Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         todo!();
     }
 }
 
+// ── `AsRef<Vec<T, A>> for Vec<T, A>` Implementation ─────────────────────────
+// where
+//      A: Allocator
 impl<T, A: Allocator> AsRef<Vec<T, A>> for Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn as_ref(&self) -> &Vec<T, A> { todo!(); }
 }
 
+// ── `AsMut<Vec<T, A>> for Vec<T, A>` Implementation ─────────────────────────
+// where
+//      A: Allocator
 impl<T, A: Allocator> AsMut<Vec<T, A>> for Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn as_mut(&mut self) -> &mut Vec<T, A> { todo!(); }
 }
 
+// ── `AsRef<[T]> for Vec<T, A>` Implementation ───────────────────────────────
+// where
+//      A: Allocator
 impl<T, A: Allocator> AsRef<[T]> for Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn as_ref(&self) -> &[T] { todo!(); }
 }
 
+// ── `AsMut<[T]> for Vec<T, A>` Implementation ───────────────────────────────
+// where
+//      A: Allocator
 impl<T, A: Allocator> AsMut<[T]> for Vec<T, A> {
+    // ── Methods ─────────────────────────────────────────────────────────────
     // TODO
     fn as_mut(&mut self) -> &mut [T] { todo!(); }
 }
 
+// ── `From<&[T]> for Vec<T>` Implementation ──────────────────────────────────
+// where
+//      T: Clone
 impl<T: Clone> From<&[T]> for Vec<T> {
+    // ── Functions ───────────────────────────────────────────────────────────
     // TODO
     fn from(s: &[T]) -> Vec<T> { todo!(); }
 }
 
+// ── `From<&mut [T]> for Vec<T>` Implementation ──────────────────────────────
+// where
+//      T: Clone
 impl<T: Clone> From<&mut [T]> for Vec<T> {
+    // ── Functions ───────────────────────────────────────────────────────────
     // TODO
     fn from(s: &mut [T]) -> Vec<T> { todo!(); }
 }
 
+// ── `From<&[T; N]> for Vec<T>` Implementation ───────────────────────────────
+// where
+//      T: Clone
+//      N: usize
 impl<T: Clone, const N: usize> From<&[T; N]> for Vec<T> {
+    // ── Functions ───────────────────────────────────────────────────────────
+    // TODO
     fn from(s: &[T; N]) -> Vec<T> { todo!(); }
 }
 
+// ── `From<&mut [T; N]> for Vec<T>` Implementation ───────────────────────────
+// where
+//      T: Clone
+//      N: usize
 impl<T: Clone, const N: usize> From<&mut [T; N]> for Vec<T> {
+    // ── Functions ───────────────────────────────────────────────────────────
     // TODO
     fn from(s: &mut [T; N]) -> Vec<T> { todo!(); }
 }
 
+// ── `From<T; N> for Vec<T>` Implementation ──────────────────────────────────
+// where
+//      N: usize
 impl<T, const N: usize> From<[T; N]> for Vec<T> {
+    // ── Functions ───────────────────────────────────────────────────────────
     // TODO
     fn from(s: [T; N]) -> Vec<T> { todo!(); }
 }
 
+// ── `From<Cow<'a, [T]>> for Vec<T>` Implementation ──────────────────────────
 impl<'a, T> From<Cow<'a, [T]>> for Vec<T>
 where
     [T]: ToOwned<Owned = Vec<T>>,
 {
+    // ── Functions ───────────────────────────────────────────────────────────
     // TODO
     fn from(s: Cow<'a, [T]>) -> Vec<T> { todo!(); }
 }
 
-
+// ── `From<Box<[T], A>> for Vec<T, A>` Implementation ────────────────────────
+// where
+//      A: Allocator
 impl<T, A: Allocator> From<Box<[T], A>> for Vec<T, A> {
+    // ── Functions ───────────────────────────────────────────────────────────
     // TODO
     fn from(s: Box<[T], A>) -> Self { todo!(); }
 }
 
+// ── `From<Vec<T, A>> for Box<[T], A>` Implementation ────────────────────────
+// where
+//      A: Allocator
 impl<T, A: Allocator> From<Vec<T, A>> for Box<[T], A> {
+    // ── Functions ───────────────────────────────────────────────────────────
     // TODO
     fn from(v: Vec<T, A>) -> Self { todo!(); }
 }
 
+// ── `From<&str> for Vec<u8>` Implementation ─────────────────────────────────
 impl From<&str> for Vec<u8> {
+    // ── Functions ───────────────────────────────────────────────────────────
     // TODO
     fn from(s: &str) -> Vec<u8> { todo!(); }
 }
 
-const impl<T: [const] Destruct, A: [const] Allocator + [const] Destruct, const N: usize>
-    TryFrom<Vec<T, A>> for [T; N]
-{
+// ── `TryFrom<Vec<T, A>> for [T; N]` Implementation ──────────────────────────
+// where
+//      T: Destruct
+//      A: Allocator + Destruct
+impl<
+    T: Destruct,
+    A: Allocator + Destruct,
+    const N: usize
+> TryFrom<Vec<T, A>> for [T; N] {
+    // ── Types ───────────────────────────────────────────────────────────────
     type Error = Vec<T, A>;
-
+    
+    // ── Functions ───────────────────────────────────────────────────────────
     // TODO
     fn try_from(mut vec: Vec<T, A>) -> Result<[T; N], Vec<T, A>> {
         todo!();
