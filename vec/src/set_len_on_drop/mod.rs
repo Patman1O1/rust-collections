@@ -1,33 +1,30 @@
-// Set the length of the vec when the `SetLenOnDrop` value goes out of scope.
-//
-// The idea is: The length field in SetLenOnDrop is a local variable
-// that the optimizer will see does not alias with any stores through the Vec's data
-// pointer. This is a workaround for alias analysis issue #32155
+// ── Modules ─────────────────────────────────────────────────────────────────
+#[cfg(test)]
+mod tests;
+
+// ── `struct SetLenOnDrop<'a>` Definition ────────────────────────────────────
 pub(super) struct SetLenOnDrop<'a> {
     len: &'a mut usize,
-    local_len: usize,
+    local_len: usize
 }
 
+// ── `SetLenOnDrop<'a>` Implementation ───────────────────────────────────────
 impl<'a> SetLenOnDrop<'a> {
-    #[inline]
-    pub(super) fn new(len: &'a mut usize) -> Self {
-        SetLenOnDrop { local_len: *len, len }
-    }
+    // ── Functions ───────────────────────────────────────────────────────────
+    // TODO
+    pub(super) fn new(len: &'a mut usize) -> Self { todo!(); }
 
-    #[inline]
-    pub(super) fn increment_len(&mut self, increment: usize) {
-        self.local_len += increment;
-    }
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    pub(super) fn increment_len(&mut self, increment: usize) { todo!(); }
 
-    #[inline]
-    pub(super) fn current_len(&self) -> usize {
-        self.local_len
-    }
+    // TODO
+    pub(super) fn current_len(&self) -> usize { todo!(); }
 }
 
+// ── `Drop for SetLenOnDrop<'_>` Implementation ──────────────────────────────
 impl Drop for SetLenOnDrop<'_> {
-    #[inline]
-    fn drop(&mut self) {
-        *self.len = self.local_len;
-    }
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    fn drop(&mut self) { todo!(); }
 }
