@@ -1,15 +1,15 @@
-// ── Core Aliases ─────────────────────────────────────────────────────────────
+// ── Core Aliases ────────────────────────────────────────────────────────────
 use core::{
     ptr::{self}
 };
 
-// ── Super Aliases ────────────────────────────────────────────────────────────
+// ── Super Aliases ───────────────────────────────────────────────────────────
 use super::{
     IsZero,
     Vec
 };
 
-// ── Crate Aliases ────────────────────────────────────────────────────────────
+// ── Crate Aliases ───────────────────────────────────────────────────────────
 use crate::{
     alloc::{Allocator},
     raw_vec::{RawVec}
@@ -19,13 +19,13 @@ use crate::{
 #[cfg(test)]
 mod tests;
 
-// ── `trait SpecFromElem` Definition ──────────────────────────────────────────
+// ── `trait SpecFromElem` Definition ─────────────────────────────────────────
 pub(super) trait SpecFromElem: Sized {
     // ── Functions ───────────────────────────────────────────────────────────
     fn from_elem<A: Allocator>(elem: Self, n: usize, alloc: A) -> Vec<Self, A>;
 }
 
-// ── `SpecFromElem for T` Implementation ──────────────────────────────────────
+// ── `SpecFromElem for T` Implementation ─────────────────────────────────────
 // where
 //      T: Clone
 impl<T: Clone> SpecFromElem for T {
@@ -38,7 +38,7 @@ impl<T: Clone> SpecFromElem for T {
     ) -> Vec<Self, A> { todo!(); }
 }
 
-// ── `SpecFromElem for T` Implementation ──────────────────────────────────────
+// ── `SpecFromElem for T` Implementation ─────────────────────────────────────
 // where
 //      T: Clone + IsZero
 impl<T: Clone + IsZero> SpecFromElem for T {
@@ -51,7 +51,7 @@ impl<T: Clone + IsZero> SpecFromElem for T {
     ) -> Vec<T, A> { todo!(); }
 }
 
-// ── `SpecFromElem for i8` Implementation ─────────────────────────────────────
+// ── `SpecFromElem for i8` Implementation ────────────────────────────────────
 impl SpecFromElem for i8 {
     // ── Functions ───────────────────────────────────────────────────────────
     // TODO
@@ -60,7 +60,7 @@ impl SpecFromElem for i8 {
     }
 }
 
-// ── `SpecFromElem for u8` Implementation ─────────────────────────────────────
+// ── `SpecFromElem for u8` Implementation ────────────────────────────────────
 impl SpecFromElem for u8 {
     // ── Functions ───────────────────────────────────────────────────────────
     // TODO
@@ -69,7 +69,7 @@ impl SpecFromElem for u8 {
     }
 }
 
-// ── `SpecFromElem for ()` Implementation ─────────────────────────────────────
+// ── `SpecFromElem for ()` Implementation ────────────────────────────────────
 impl SpecFromElem for () {
     // ── Functions ───────────────────────────────────────────────────────────
     // TODO
