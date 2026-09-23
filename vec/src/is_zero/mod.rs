@@ -1,36 +1,101 @@
-use core::mem::SizedTypeProperties;
-use core::num::{NonZero, Saturating, Wrapping};
+// ── Core Aliases ────────────────────────────────────────────────────────────
+use core::{
+    mem::{SizedTypeProperties},
+    num::{
+        NonZero,
+        Saturating,
+        Wrapping
+    }
+};
 
-use crate::boxed::Box;
+// ── Crate Aliases ───────────────────────────────────────────────────────────
+use crate::{
+    boxed::{Box}
+};
 
+// ── Modules ─────────────────────────────────────────────────────────────────
+#[cfg(test)]
+mod tests;
+
+// ── `trait IsZero` Definition ───────────────────────────────────────────────
 #[rustc_specialization_trait]
 pub(super) unsafe trait IsZero {
-    /// Whether this value's representation is all zeros,
-    /// or can be represented with all zeroes.
+    // ── Methods ─────────────────────────────────────────────────────────────
     fn is_zero(&self) -> bool;
 }
 
+// ── Macros ──────────────────────────────────────────────────────────────────
 macro_rules! impl_is_zero {
     ($t:ty, $is_zero:expr) => {
         unsafe impl IsZero for $t {
-            #[inline]
-            fn is_zero(&self) -> bool {
-                $is_zero(*self)
-            }
+            // ── Methods ─────────────────────────────────────────────────────
+            // TODO
+            fn is_zero(&self) -> bool { todo!(); }
         }
     };
 }
 
-impl_is_zero!((), |_: ()| true); // It is needed to impl for arrays and tuples of ().
+// ── `macro_rules! impl_is_zero_tuples` Definition ───────────────────────────
+macro_rules! impl_is_zero_tuples {
+    () => {};
+    ($first_arg:ident $(,$rest:ident)*) => {
+        unsafe impl
+            $first_arg: IsZero,
+            $($rest: IsZero,)*> IsZero for ($first_arg, $($rest,)*)
+        {
+            // ── Methods ─────────────────────────────────────────────────────
+            // TODO
+            fn is_zero(&self) -> bool { todo!(); }
+        }
 
-impl_is_zero!(i8, |x| x == 0); // It is needed to impl for arrays and tuples of i8.
+        impl_is_zero_tuples!($($rest),*);
+    }
+}
+
+// ── `macro_rules! impl_is_zero_option_of_nonzero_int` Definition ────────────
+macro_rules! impl_is_zero_option_of_nonzero_int {
+    ($($t:ty),+ $(,)?) => {$(
+        unsafe impl IsZero for Option<NonZero<$t>> {
+            // ── Methods ─────────────────────────────────────────────────────
+            // TODO
+            fn is_zero(&self) -> bool { todo!(); }
+        }
+    )+};
+}
+
+// ── `macro_rules! impl_is_zero_option_of_int` Definition ────────────────────
+macro_rules! impl_is_zero_option_of_int {
+    ($($t:ty),+ $(,)?) => {$(
+        unsafe impl IsZero for Option<$t> {
+            // ── Methods ─────────────────────────────────────────────────────
+            // TODO
+            fn is_zero(&self) -> bool { todo!(); }
+        }
+    )+};
+}
+
+// ── `macro_rules! impl_is_zero_option_of_bool` Definition ───────────────────
+macro_rules! impl_is_zero_option_of_bool {
+    ($($t:ty),+ $(,)?) => {$(
+        unsafe impl IsZero for $t {
+            // ── Methods ─────────────────────────────────────────────────────
+            // TODO
+            fn is_zero(&self) -> bool { todo!(); }
+        }
+    )+};
+}
+
+// ── `impl_is_zero!` Invocations ─────────────────────────────────────────────
+impl_is_zero!((), |_: ()| true);
+
+impl_is_zero!(i8, |x| x == 0);
 impl_is_zero!(i16, |x| x == 0);
 impl_is_zero!(i32, |x| x == 0);
 impl_is_zero!(i64, |x| x == 0);
 impl_is_zero!(i128, |x| x == 0);
 impl_is_zero!(isize, |x| x == 0);
 
-impl_is_zero!(u8, |x| x == 0); // It is needed to impl for arrays and tuples of u8.
+impl_is_zero!(u8, |x| x == 0);
 impl_is_zero!(u16, |x| x == 0);
 impl_is_zero!(u32, |x| x == 0);
 impl_is_zero!(u64, |x| x == 0);
@@ -43,161 +108,99 @@ impl_is_zero!(char, |x| x == '\0');
 impl_is_zero!(f32, |x: f32| x.to_bits() == 0);
 impl_is_zero!(f64, |x: f64| x.to_bits() == 0);
 
-// `IsZero` cannot be soundly implemented for pointers because of provenance
-// (see #135338).
-
+// ── `IsZero for [T; N]` Implementation ──────────────────────────────────────
+// where
+//      N: usize
 unsafe impl<T, const N: usize> IsZero for [T; N] {
-    #[inline]
-    default fn is_zero(&self) -> bool {
-        // If the array is of length zero,
-        // then it doesn't actually contain any `T`s,
-        // so `T::clone` doesn't need to be called,
-        // and we can "zero-initialize" all zero bytes of the array.
-        N == 0
-    }
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    default fn is_zero(&self) -> bool { todo!(); }
 }
 
+// ── `IsZero for [T; N]` Implementation ──────────────────────────────────────
+// where
+//      T: IsZero
+//      N: usize
 unsafe impl<T: IsZero, const N: usize> IsZero for [T; N] {
-    #[inline]
-    fn is_zero(&self) -> bool {
-        if T::IS_ZST {
-            // If T is a ZST, then there is at most one possible value of `T`,
-            // so we only need to check one element for zeroness.
-            // We can't unconditionally return `true` here, since, e.g.
-            // `T = [NonTrivialCloneZst; 5]` is a ZST that implements `IsZero`
-            // due to the generic array impl, but `T::is_zero` returns `false`
-            // since the length is not 0.
-            self.get(0).is_none_or(IsZero::is_zero)
-        } else {
-            // Because this is generated as a runtime check, it's not obvious that
-            // it's worth doing if the array is really long. The threshold here
-            // is largely arbitrary, but was picked because as of 2022-07-01 LLVM
-            // fails to const-fold the check in `vec![[1; 32]; n]`
-            // See https://github.com/rust-lang/rust/pull/97581#issuecomment-1166628022
-            // Feel free to tweak if you have better evidence.
-
-            N <= 16 && self.iter().all(IsZero::is_zero)
-        }
-    }
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    fn is_zero(&self) -> bool { todo!(); }
 }
 
-// This is recursive macro.
-macro_rules! impl_is_zero_tuples {
-    // Stopper
-    () => {
-        // We already have an impl for () above.
-    };
-    ($first_arg:ident $(,$rest:ident)*) => {
-        unsafe impl <$first_arg: IsZero, $($rest: IsZero,)*> IsZero for ($first_arg, $($rest,)*){
-            #[inline]
-            fn is_zero(&self) -> bool{
-                // Destructure tuple to N references
-                // Rust allows to hide generic params by local variable names.
-                #[allow(non_snake_case)]
-                let ($first_arg, $($rest,)*) = self;
-
-                $first_arg.is_zero()
-                    $( && $rest.is_zero() )*
-            }
-        }
-
-        impl_is_zero_tuples!($($rest),*);
-    }
-}
-
+// ── `impl_is_zero_tuples!` Invocation ───────────────────────────────────────
 impl_is_zero_tuples!(A, B, C, D, E, F, G, H);
 
-// `Option<&T>` and `Option<Box<T>>` are guaranteed to represent `None` as null.
-// For fat pointers, the bytes that would be the pointer metadata in the `Some`
-// variant are padding in the `None` variant, so ignoring them and
-// zero-initializing instead is ok.
-// `Option<&mut T>` never implements `Clone`, so there's no need for an impl of
-// `SpecFromElem`.
-
+// ── `IsZero for Option<&T>` Implementation ──────────────────────────────────
+// where
+//      T: ?Sized
 unsafe impl<T: ?Sized> IsZero for Option<&T> {
-    #[inline]
-    fn is_zero(&self) -> bool {
-        self.is_none()
-    }
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    fn is_zero(&self) -> bool { todo!(); }
 }
 
+// ── `IsZero for Option<Box<T>>` Implementation ──────────────────────────────
+// where
+//      T: ?Sized
 unsafe impl<T: ?Sized> IsZero for Option<Box<T>> {
-    #[inline]
-    fn is_zero(&self) -> bool {
-        self.is_none()
-    }
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    fn is_zero(&self) -> bool { todo!(); }
 }
 
-// `Option<NonZero<u32>>` and similar have a representation guarantee that
-// they're the same size as the corresponding `u32` type, as well as a guarantee
-// that transmuting between `NonZero<u32>` and `Option<NonZero<u32>>` works.
-// While the documentation officially makes it UB to transmute from `None`,
-// we're the standard library so we can make extra inferences, and we know that
-// the only niche available to represent `None` is the one that's all zeros.
-macro_rules! impl_is_zero_option_of_nonzero_int {
-    ($($t:ty),+ $(,)?) => {$(
-        unsafe impl IsZero for Option<NonZero<$t>> {
-            #[inline]
-            fn is_zero(&self) -> bool {
-                self.is_none()
-            }
-        }
-    )+};
-}
+// ── `impl_is_zero_option_of_nonzero_int!` Invocation ────────────────────────
+impl_is_zero_option_of_nonzero_int!(
+    u8,
+    u16,
+    u32,
+    u64,
+    u128,
+    usize,
+    i8,
+    i16,
+    i32,
+    i64,
+    i128,
+    isize
+);
 
-impl_is_zero_option_of_nonzero_int!(u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize);
+// ── `impl_is_zero_option_of_int!` Invocation ────────────────────────────────
+impl_is_zero_option_of_int!(
+    u8,
+    u16,
+    u32,
+    u64,
+    u128,
+    i8,
+    i16,
+    i32,
+    i64,
+    i128,
+    usize,
+    isize
+);
 
-macro_rules! impl_is_zero_option_of_int {
-    ($($t:ty),+ $(,)?) => {$(
-        unsafe impl IsZero for Option<$t> {
-            #[inline]
-            fn is_zero(&self) -> bool {
-                const {
-                    // SAFETY: All-zeroes is a valid bitpattern for these primitives.
-                    let none: Self = unsafe { core::mem::MaybeUninit::zeroed().assume_init() };
-                    assert!(none.is_none());
-                }
-                self.is_none()
-            }
-        }
-    )+};
-}
-
-impl_is_zero_option_of_int!(u8, u16, u32, u64, u128, i8, i16, i32, i64, i128, usize, isize);
-
+// ── `IsZero for Wrapping<T>` Implementation ─────────────────────────────────
+// where
+//      T: IsZero
 unsafe impl<T: IsZero> IsZero for Wrapping<T> {
-    #[inline]
-    fn is_zero(&self) -> bool {
-        self.0.is_zero()
-    }
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    fn is_zero(&self) -> bool { todo!(); }
 }
 
+// ── `IsZero for Saturating<T>` Implementation ───────────────────────────────
+// where
+//      T: IsZero
 unsafe impl<T: IsZero> IsZero for Saturating<T> {
-    #[inline]
-    fn is_zero(&self) -> bool {
-        self.0.is_zero()
-    }
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    fn is_zero(&self) -> bool { todo!(); }
 }
 
-macro_rules! impl_is_zero_option_of_bool {
-    ($($t:ty),+ $(,)?) => {$(
-        unsafe impl IsZero for $t {
-            #[inline]
-            fn is_zero(&self) -> bool {
-                // SAFETY: This is *not* a stable layout guarantee, but
-                // inside `core` we're allowed to rely on the current rustc
-                // behavior that options of bools will be one byte with
-                // no padding, so long as they're nested less than 254 deep.
-                let raw: u8 = unsafe { core::mem::transmute(*self) };
-                raw == 0
-            }
-        }
-    )+};
-}
-
-impl_is_zero_option_of_bool! {
+// ── `impl_is_zero_option_of_bool!` Invocation ───────────────────────────────
+impl_is_zero_option_of_bool!(
     Option<bool>,
     Option<Option<bool>>,
-    Option<Option<Option<bool>>>,
-    // Could go further, but not worth the metadata overhead.
-}
+    Option<Option<Option<bool>>>
+);
