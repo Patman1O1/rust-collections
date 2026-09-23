@@ -1,4 +1,4 @@
-// ── Core Aliases ─────────────────────────────────────────────────────────────
+// ── Core Aliases ────────────────────────────────────────────────────────────
 use core::{
     fmt::{self},
     iter::{
@@ -17,12 +17,12 @@ use core::{
     slice::{self}
 };
 
-// ── Super Aliases ────────────────────────────────────────────────────────────
+// ── Super Aliases ───────────────────────────────────────────────────────────
 use super::{
     Vec
 };
 
-// ── Crate Aliases ────────────────────────────────────────────────────────────
+// ── Crate Aliases ───────────────────────────────────────────────────────────
 use crate::{
     alloc::{
         Allocator,
@@ -34,7 +34,7 @@ use crate::{
 #[cfg(test)]
 mod tests;
 
-// ── `struct Drain<'a, T, A>` Definition ──────────────────────────────────────
+// ── `struct Drain<'a, T, A>` Definition ─────────────────────────────────────
 pub struct Drain<'a, T: 'a, A: Allocator + 'a = Global> {
     pub(super) tail_start: usize,
     pub(super) tail_len: usize,
@@ -42,7 +42,7 @@ pub struct Drain<'a, T: 'a, A: Allocator + 'a = Global> {
     pub(super) vec: NonNull<Vec<T, A>>
 }
 
-// ── `Drain<'a, T, A>` Implementation ─────────────────────────────────────────
+// ── `Drain<'a, T, A>` Implementation ────────────────────────────────────────
 // where
 //      A: Allocator
 impl<'a, T, A: Allocator> Drain<'a, T, A> {
@@ -57,7 +57,7 @@ impl<'a, T, A: Allocator> Drain<'a, T, A> {
     pub fn keep_rest(self) { todo!(); }
 }
 
-// ── `Debug for Drain<'_, T, A>` Implementation ───────────────────────────────
+// ── `Debug for Drain<'_, T, A>` Implementation ──────────────────────────────
 // where
 //      T: Debug
 //      A: Allocator
@@ -69,7 +69,7 @@ impl<T: fmt::Debug, A: Allocator> fmt::Debug for Drain<'_, T, A> {
     }
 }
 
-// ── `AsRef<[T]> for Drain<'a, T, A>` Implementation ──────────────────────────
+// ── `AsRef<[T]> for Drain<'a, T, A>` Implementation ─────────────────────────
 // where
 //      A: Allocator
 impl<'a, T, A: Allocator> AsRef<[T]> for Drain<'a, T, A> {
@@ -78,19 +78,19 @@ impl<'a, T, A: Allocator> AsRef<[T]> for Drain<'a, T, A> {
     fn as_ref(&self) -> &[T] { todo!(); }
 }
 
-// ── `Sync for Drain<'_, T, A>` Implementation ────────────────────────────────
+// ── `Sync for Drain<'_, T, A>` Implementation ───────────────────────────────
 // where
 //      T: Sync
 //      A: Sync + Allocator
 unsafe impl<T: Sync, A: Sync + Allocator> Sync for Drain<'_, T, A> {}
 
-// ── `Send for Drain<'_, T, A>` Implementation ────────────────────────────────
+// ── `Send for Drain<'_, T, A>` Implementation ───────────────────────────────
 // where
 //      T: Send
 //      A: Send + Allocator
 unsafe impl<T: Send, A: Send + Allocator> Send for Drain<'_, T, A> {}
 
-// ── `Iterator for Drain<'_, T, A>` Implementation ────────────────────────────
+// ── `Iterator for Drain<'_, T, A>` Implementation ───────────────────────────
 // where
 //      A: Allocator
 impl<T, A: Allocator> Iterator for Drain<'_, T, A> {
@@ -105,7 +105,7 @@ impl<T, A: Allocator> Iterator for Drain<'_, T, A> {
     fn size_hint(&self) -> (usize, Option<usize>) { todo!(); }
 }
 
-// ── `DoubleEndedIterator for Drain<'_, T, A>` Implementation ─────────────────
+// ── `DoubleEndedIterator for Drain<'_, T, A>` Implementation ────────────────
 // where
 //      A: Allocator
 impl<T, A: Allocator> DoubleEndedIterator for Drain<'_, T, A> {
@@ -114,7 +114,7 @@ impl<T, A: Allocator> DoubleEndedIterator for Drain<'_, T, A> {
     fn next_back(&mut self) -> Option<T> { todo!(); }
 }
 
-// ── `Drop for Drain<'_, T, A>` Implementation ────────────────────────────────
+// ── `Drop for Drain<'_, T, A>` Implementation ───────────────────────────────
 // where
 //      A: Allocator
 impl<T, A: Allocator> Drop for Drain<'_, T, A> {
@@ -123,7 +123,7 @@ impl<T, A: Allocator> Drop for Drain<'_, T, A> {
     fn drop(&mut self) { todo!(); }
 }
 
-// ── `ExactSizeIterator for Drain<'_, T, A>` Implementation ───────────────────
+// ── `ExactSizeIterator for Drain<'_, T, A>` Implementation ──────────────────
 // where
 //      A: Allocator
 impl<T, A: Allocator> ExactSizeIterator for Drain<'_, T, A> {
@@ -132,12 +132,12 @@ impl<T, A: Allocator> ExactSizeIterator for Drain<'_, T, A> {
     fn is_empty(&self) -> bool { todo!(); }
 }
 
-// ── `TrustedLen for Drain<'_, T, A>` Implementation ──────────────────────────
+// ── `TrustedLen for Drain<'_, T, A>` Implementation ─────────────────────────
 // where
 //      A: Allocator
 unsafe impl<T, A: Allocator> TrustedLen for Drain<'_, T, A> {}
 
-// ── `FusedIterator for Drain<'_, T, A>` Implementation ───────────────────────
+// ── `FusedIterator for Drain<'_, T, A>` Implementation ──────────────────────
 // where
 //      A: Allocator
 impl<T, A: Allocator> FusedIterator for Drain<'_, T, A> {}
