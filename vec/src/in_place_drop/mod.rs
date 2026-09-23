@@ -1,49 +1,50 @@
-use core::marker::PhantomData;
-use core::ptr::NonNull;
+// ── Core Aliases ────────────────────────────────────────────────────────────
+use core::{
+    marker::{PhantomData},
+    ptr::{NonNull}
+};
 
-use crate::alloc::Global;
-use crate::raw_vec::RawVec;
+// ── Crate Aliases ───────────────────────────────────────────────────────────
+use crate::{
+    alloc::{Global},
+    raw_vec::{RawVec}
+};
 
-// A helper struct for in-place iteration that drops the destination slice of iteration,
-// i.e. the head. The source slice (the tail) is dropped by IntoIter.
+// ── `struct InPlaceDrop<T>` Definition ──────────────────────────────────────
 pub(super) struct InPlaceDrop<T> {
     pub(super) inner: *mut T,
-    pub(super) dst: *mut T,
+    pub(super) dst: *mut T
 }
 
-impl<T> InPlaceDrop<T> {
-    fn len(&self) -> usize {
-        // ignore-tidy-undocumented-unsafe
-        unsafe { self.dst.offset_from_unsigned(self.inner) }
-    }
-}
-
-impl<T> Drop for InPlaceDrop<T> {
-    #[inline]
-    fn drop(&mut self) {
-        // ignore-tidy-undocumented-unsafe
-        unsafe { self.inner.cast_slice(self.len()).drop_in_place() }
-    }
-}
-
-// A helper struct for in-place collection that drops the destination items together with
-// the source allocation - i.e. before the reallocation happened - to avoid leaking them
-// if some other destructor panics.
+// ── `struct InPlaceDstDataSrcBufDrop<Src, Dest>` Definition ─────────────────
 pub(super) struct InPlaceDstDataSrcBufDrop<Src, Dest> {
     pub(super) ptr: NonNull<Dest>,
     pub(super) len: usize,
     pub(super) src_cap: usize,
-    pub(super) src: PhantomData<Src>,
+    pub(super) src: PhantomData<Src>
 }
 
+// ── Modules ─────────────────────────────────────────────────────────────────
+#[cfg(test)]
+mod tests;
+
+// ── `InPlaceDrop<T>` Implementation ─────────────────────────────────────────
+impl<T> InPlaceDrop<T> {
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    fn len(&self) -> usize { todo!(); }
+}
+
+// ── `Drop for InPlaceDrop<T>` Implementation ────────────────────────────────
+impl<T> Drop for InPlaceDrop<T> {
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    fn drop(&mut self) { todo!(); }
+}
+
+// ── `Drop for InPlaceDstDataSrcBufDrop<Src, Dest>` Implementation ───────────
 impl<Src, Dest> Drop for InPlaceDstDataSrcBufDrop<Src, Dest> {
-    #[inline]
-    fn drop(&mut self) {
-        // ignore-tidy-undocumented-unsafe
-        unsafe {
-            let _drop_allocation =
-                RawVec::<Src>::from_nonnull_in(self.ptr.cast::<Src>(), self.src_cap, Global);
-            self.ptr.as_ptr().cast_slice(self.len).drop_in_place();
-        };
-    }
+    // ── Methods ─────────────────────────────────────────────────────────────
+    // TODO
+    fn drop(&mut self) { todo!(); }
 }
