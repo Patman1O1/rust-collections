@@ -1,14 +1,18 @@
-// ── Standard Library Aliases ─────────────────────────────────────────────────
+// ── Standard Library Aliases ────────────────────────────────────────────────
 use std::{
     borrow::Cow
 };
 
-// ── Super Aliases ────────────────────────────────────────────────────────────
+// ── Super Aliases ───────────────────────────────────────────────────────────
 use super::{
     Vec
 };
 
-// ── `From<&'a [T]> for Cow<'a, [T]>` Implementation ──────────────────────────
+// ── Modules ─────────────────────────────────────────────────────────────────
+#[cfg(test)]
+mod tests;
+
+// ── `From<&'a [T]> for Cow<'a, [T]>` Implementation ─────────────────────────
 // where
 //      T: Clone
 impl<'a, T: Clone> From<&'a [T]> for Cow<'a, [T]> {
@@ -17,7 +21,7 @@ impl<'a, T: Clone> From<&'a [T]> for Cow<'a, [T]> {
     fn from(s: &'a [T]) -> Cow<'a, [T]> { todo!(); }
 }
 
-// ── `From<&'a [T; N]> for Cow<'a, [T]>` Implementation ───────────────────────
+// ── `From<&'a [T; N]> for Cow<'a, [T]>` Implementation ──────────────────────
 // where
 //      T: Clone
 //      N: usize
@@ -27,7 +31,7 @@ impl<'a, T: Clone, const N: usize> From<&'a [T; N]> for Cow<'a, [T]> {
     fn from(s: &'a [T; N]) -> Cow<'a, [T]> { todo!(); }
 }
 
-// ── `From<Vec<T>> for Cow<'a, [T]>` Implementation ───────────────────────────
+// ── `From<Vec<T>> for Cow<'a, [T]>` Implementation ──────────────────────────
 // where
 //      T: Clone
 impl<'a, T: Clone> From<Vec<T>> for Cow<'a, [T]> {
@@ -36,7 +40,7 @@ impl<'a, T: Clone> From<Vec<T>> for Cow<'a, [T]> {
     fn from(v: Vec<T>) -> Cow<'a, [T]> { todo!(); }
 }
 
-// ── `From<&'a Vec<T>> for Cow<'a, [T]>` Implementation ───────────────────────
+// ── `From<&'a Vec<T>> for Cow<'a, [T]>` Implementation ──────────────────────
 // where
 //      T: Clone
 impl<'a, T: Clone> From<&'a Vec<T>> for Cow<'a, [T]> {
@@ -45,7 +49,7 @@ impl<'a, T: Clone> From<&'a Vec<T>> for Cow<'a, [T]> {
     fn from(v: &'a Vec<T>) -> Cow<'a, [T]> { todo!(); }
 }
 
-// ── `FromIterator<T> for Cow<'a, [T]>` Implementation ────────────────────────
+// ── `FromIterator<T> for Cow<'a, [T]>` Implementation ───────────────────────
 // where
 //      T: Clone
 impl<'a, T> FromIterator<T> for Cow<'a, [T]>
