@@ -1,77 +1,79 @@
-use core::ptr;
+// ── Core Aliases ─────────────────────────────────────────────────────────────
+use core::{
+    ptr::{self}
+};
 
-use super::{IsZero, Vec};
-use crate::alloc::Allocator;
-use crate::raw_vec::RawVec;
+// ── Super Aliases ────────────────────────────────────────────────────────────
+use super::{
+    IsZero,
+    Vec
+};
 
-// Specialization trait used for Vec::from_elem
+// ── Crate Aliases ────────────────────────────────────────────────────────────
+use crate::{
+    alloc::{Allocator},
+    raw_vec::{RawVec}
+};
+
+// ── Modules ─────────────────────────────────────────────────────────────────
+#[cfg(test)]
+mod tests;
+
+// ── `trait SpecFromElem` Definition ──────────────────────────────────────────
 pub(super) trait SpecFromElem: Sized {
+    // ── Functions ───────────────────────────────────────────────────────────
     fn from_elem<A: Allocator>(elem: Self, n: usize, alloc: A) -> Vec<Self, A>;
 }
 
+// ── `SpecFromElem for T` Implementation ──────────────────────────────────────
+// where
+//      T: Clone
 impl<T: Clone> SpecFromElem for T {
-    default fn from_elem<A: Allocator>(elem: Self, n: usize, alloc: A) -> Vec<Self, A> {
-        let mut v = Vec::with_capacity_in(n, alloc);
-        v.extend_with(n, elem);
-        v
-    }
+    // ── Functions ───────────────────────────────────────────────────────────
+    // TODO
+    default fn from_elem<A: Allocator>(
+        elem: Self,
+        n: usize,
+        alloc: A
+    ) -> Vec<Self, A> { todo!(); }
 }
 
+// ── `SpecFromElem for T` Implementation ──────────────────────────────────────
+// where
+//      T: Clone + IsZero
 impl<T: Clone + IsZero> SpecFromElem for T {
-    #[inline]
-    default fn from_elem<A: Allocator>(elem: T, n: usize, alloc: A) -> Vec<T, A> {
-        if elem.is_zero() {
-            return Vec { buf: RawVec::with_capacity_zeroed_in(n, alloc), len: n };
-        }
-        let mut v = Vec::with_capacity_in(n, alloc);
-        v.extend_with(n, elem);
-        v
-    }
+    // ── Functions ───────────────────────────────────────────────────────────
+    // TODO
+    default fn from_elem<A: Allocator>(
+        elem: T,
+        n: usize,
+        alloc: A
+    ) -> Vec<T, A> { todo!(); }
 }
 
+// ── `SpecFromElem for i8` Implementation ─────────────────────────────────────
 impl SpecFromElem for i8 {
-    #[inline]
+    // ── Functions ───────────────────────────────────────────────────────────
+    // TODO
     fn from_elem<A: Allocator>(elem: i8, n: usize, alloc: A) -> Vec<i8, A> {
-        if elem == 0 {
-            return Vec { buf: RawVec::with_capacity_zeroed_in(n, alloc), len: n };
-        }
-        let mut v = Vec::with_capacity_in(n, alloc);
-        // ignore-tidy-undocumented-unsafe
-        unsafe {
-            ptr::write_bytes(v.as_mut_ptr(), elem as u8, n);
-            v.set_len(n);
-        }
-        v
+        todo!();
     }
 }
 
+// ── `SpecFromElem for u8` Implementation ─────────────────────────────────────
 impl SpecFromElem for u8 {
-    #[inline]
+    // ── Functions ───────────────────────────────────────────────────────────
+    // TODO
     fn from_elem<A: Allocator>(elem: u8, n: usize, alloc: A) -> Vec<u8, A> {
-        if elem == 0 {
-            return Vec { buf: RawVec::with_capacity_zeroed_in(n, alloc), len: n };
-        }
-        let mut v = Vec::with_capacity_in(n, alloc);
-        // ignore-tidy-undocumented-unsafe
-        unsafe {
-            ptr::write_bytes(v.as_mut_ptr(), elem, n);
-            v.set_len(n);
-        }
-        v
+        todo!();
     }
 }
 
-// A better way would be to implement this for all ZSTs which are `Copy` and have trivial `Clone`
-// but the latter cannot be detected currently
+// ── `SpecFromElem for ()` Implementation ─────────────────────────────────────
 impl SpecFromElem for () {
-    #[inline]
+    // ── Functions ───────────────────────────────────────────────────────────
+    // TODO
     fn from_elem<A: Allocator>(_elem: (), n: usize, alloc: A) -> Vec<(), A> {
-        let mut v = Vec::with_capacity_in(n, alloc);
-        // SAFETY: the capacity has just been set to `n`
-        // and `()` is a ZST with trivial `Clone` implementation
-        unsafe {
-            v.set_len(n);
-        }
-        v
+        todo!();
     }
 }
