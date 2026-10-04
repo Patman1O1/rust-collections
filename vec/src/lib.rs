@@ -3,6 +3,7 @@ use core::{
     alloc::{
         Layout
     },
+    hint::cold_path,
     marker::PhantomData,
     mem,
     ptr::NonNull
@@ -67,7 +68,7 @@ impl<T, A: Allocator> Vec<T, A> {
     }
 
     // ── Methods ─────────────────────────────────────────────────────────────
-    fn grow_to(&mut self, new_cap: usize) {
+    fn realloc(&mut self, new_cap: usize) {
         debug_assert!(!Self::IS_ZST && self.cap < new_cap);
         
         let new_layout: Layout = Layout::array::<T>(new_cap).unwrap_or_else(
@@ -95,5 +96,25 @@ impl<T, A: Allocator> Vec<T, A> {
 
         self.cap = new_cap;
     }
+    
+    fn grow(&mut self) {
+        if Self::IS_ZST {
+            cold_path();
 
+            // Since self.cap is always isize::MAX when T is a zero sized type,
+            // and self.grow() is only ever called when self.len > self.cap,
+            // then a overflow must have happened.
+            capacity_overflow();
+        }
+
+        self.realloc(
+            if self.cap > 0 {
+                self.cap.checked_shl(1).unwrap_or_else(
+                    || { capacity_overflow() }
+                )
+            } else {
+                Self::DEFAULT_CAP
+            }
+        );
+    }
 }
