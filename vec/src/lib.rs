@@ -83,32 +83,5 @@ impl<T, A: Allocator> Vec<T, A> {
     }
     
     // ── Methods ─────────────────────────────────────────────────────────────    
-    fn grow(&mut self) {
-        debug_assert!(!Self::IS_ZST);
         
-        // SAFETY: The old layout was already checked when the
-        // current buffer was allocated.
-        let old_layout = unsafe {
-            Layout::array::<T>(self.cap).unwrap_unchecked()
-        };
-
-        let new_cap: usize = self.cap.checked_shl(1).unwrap_or_else(|| {
-            capacity_overflow()
-        });
-
-        let new_layout = Layout::array::<T>(new_cap).unwrap_or_else(|_| {
-            capacity_overflow()
-        });
-
-        // SAFETY: `new_layout` was just checked for overflow and has the same
-        // layout as `old_layout` and is larger.
-        self.ptr = match unsafe {
-            self.alloc.grow(self.ptr.cast(), old_layout, new_layout)
-        } {
-            Ok(buffer) => buffer.cast(),
-            Err(_) => handle_alloc_error(new_layout)
-        };
-        self.cap = new_cap;
-    }
-    
 }
