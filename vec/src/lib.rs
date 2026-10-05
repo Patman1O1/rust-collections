@@ -68,6 +68,22 @@ impl<T, A: Allocator> Vec<T, A> {
     }
 
     // ── Methods ─────────────────────────────────────────────────────────────
+    fn allocate(&mut self) {
+        debug_assert!(!Self::IS_ZST);
+
+        // SAFETY: Self::DEFAULT_CAP is always less than isize::MAX
+        let layout = unsafe {
+            Layout::array::<T>(Self::DEFAULT_CAP).unwrap_unchecked()
+        };
+
+        self.ptr = self.alloc.allocate(layout).unwrap_or_else(
+            |_| { handle_alloc_error(layout) }
+        ).cast();
+        self.cap = Self::DEFAULT_CAP;
+    }
+
+
+
     fn realloc(&mut self, new_cap: usize) {
         debug_assert!(!Self::IS_ZST && self.cap < new_cap);
         
