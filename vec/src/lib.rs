@@ -68,7 +68,7 @@ impl<T, A: Allocator> Vec<T, A> {
     }
 
     // ── Methods ─────────────────────────────────────────────────────────────
-    fn alloc(&mut self) {
+    fn allocate(&mut self) {
         debug_assert!(!Self::IS_ZST);
 
         // SAFETY: Self::DEFAULT_CAP is always less than isize::MAX
@@ -80,37 +80,6 @@ impl<T, A: Allocator> Vec<T, A> {
             |_| { handle_alloc_error(layout) }
         ).cast();
         self.cap = Self::DEFAULT_CAP;
-    }
-
-
-
-    fn realloc(&mut self, new_cap: usize) {
-        debug_assert!(!Self::IS_ZST && self.cap < new_cap);
-        
-        let new_layout: Layout = Layout::array::<T>(new_cap).unwrap_or_else(
-            |_| { capacity_overflow() }
-        );
-
-        let result = if self.cap > 0 {
-            // SAFETY: This layout was already checked during the creation
-            // of the current buffer.
-            let old_layout = unsafe {
-                Layout::array::<T>(new_cap).unwrap_unchecked()
-            };
-
-            // SAFETY: `ptr` was allocated by `self.alloc` with `old_layout`,
-            // and `new_layout` has the same alignment and a larger size.
-            unsafe { self.alloc.grow(self.ptr.cast(), old_layout, new_layout) }
-        } else {
-            self.alloc.allocate(new_layout)
-        };
-
-        self.ptr = match result {
-            Ok(buffer) => buffer.cast(),
-            Err(_) => handle_alloc_error(new_layout)
-        };
-
-        self.cap = new_cap;
     }
     
     fn grow(&mut self) {
