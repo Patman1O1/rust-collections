@@ -67,6 +67,9 @@ impl<T> Vec<T> {
     // ── Methods ─────────────────────────────────────────────────────────────
     #[inline]
     pub const fn ptr(&self) -> *mut T { self.ptr.as_ptr() }
+
+    #[inline]
+    pub const fn non_null(&self) -> NonNull<T> { self.ptr }
 }
 
 // ── `Vec<T, A: Allocator>` Implementations ──────────────────────────────────
