@@ -62,6 +62,11 @@ fn handle_error(e: TryReserveError) -> ! {
 impl<T> Vec<T> {
     // ── Functions ───────────────────────────────────────────────────────────
     pub fn new() -> Self { Self::new_in(Global) }
+
+
+    // ── Methods ─────────────────────────────────────────────────────────────
+    #[inline]
+    pub const fn ptr(&self) -> *mut T { self.ptr.as_ptr() }
 }
 
 // ── `Vec<T, A: Allocator>` Implementations ──────────────────────────────────
@@ -82,6 +87,5 @@ impl<T, A: Allocator> Vec<T, A> {
         }
     }
     
-    // ── Methods ─────────────────────────────────────────────────────────────    
-        
+    // ── Methods ─────────────────────────────────────────────────────────────
 }
