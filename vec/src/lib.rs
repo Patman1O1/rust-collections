@@ -82,24 +82,5 @@ impl<T, A: Allocator> Vec<T, A> {
         self.cap = Self::DEFAULT_CAP;
     }
     
-    fn grow(&mut self) {
-        if Self::IS_ZST {
-            cold_path();
-
-            // Since self.cap is always isize::MAX when T is a zero sized type,
-            // and self.grow() is only ever called when self.len > self.cap,
-            // then a overflow must have happened.
-            capacity_overflow();
-        }
-
-        self.realloc(
-            if self.cap > 0 {
-                self.cap.checked_shl(1).unwrap_or_else(
-                    || { capacity_overflow() }
-                )
-            } else {
-                Self::DEFAULT_CAP
-            }
-        );
-    }
+    
 }
