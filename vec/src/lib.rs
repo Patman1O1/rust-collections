@@ -68,7 +68,7 @@ impl<T, A: Allocator> Vec<T, A> {
     }
 
     // ── Methods ─────────────────────────────────────────────────────────────
-    fn allocate(&mut self) {
+    fn alloc(&mut self) {
         debug_assert!(!Self::IS_ZST);
 
         // SAFETY: Self::DEFAULT_CAP is always less than isize::MAX
