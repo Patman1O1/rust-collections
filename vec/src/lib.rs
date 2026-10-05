@@ -14,7 +14,14 @@ use std::{
 };
 
 use allocator_api2::{
-    alloc::{Allocator, Global}
+    alloc::{Allocator, Global}, 
+    collections::{
+        TryReserveError,
+        TryReserveErrorKind::{
+            CapacityOverflow,
+            AllocError
+        }
+    }
 };
 
 // ── Modules ─────────────────────────────────────────────────────────────────
@@ -41,11 +48,15 @@ pub struct Vec<T, A: Allocator = Global> {
 // ── Functions ───────────────────────────────────────────────────────────────
 #[cold]
 #[inline(never)]
-fn capacity_overflow() -> ! { panic!("capacity overflow"); }
+const fn capacity_overflow() -> ! { panic!("capacity overflow"); }
 
 #[cold]
-#[inline(never)]
-fn capacity_underflow() -> ! { panic!("capacity underflow"); }
+fn handle_error(e: TryReserveError) -> ! {
+    match e.kind() {
+        CapacityOverflow => capacity_overflow(),
+        AllocError { layout, .. } => handle_alloc_error(layout)
+    }
+}
 
 // ── `Vec<T>` Implementations ────────────────────────────────────────────────
 impl<T> Vec<T> {
@@ -70,7 +81,7 @@ impl<T, A: Allocator> Vec<T, A> {
             marker: PhantomData
         }
     }
-
+    
     // ── Methods ─────────────────────────────────────────────────────────────
     fn allocate(&mut self) {
         debug_assert!(!Self::IS_ZST);
