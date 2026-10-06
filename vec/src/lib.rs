@@ -48,20 +48,6 @@ pub struct Vec<T, A: Allocator = Global> {
     marker: PhantomData::<T>
 }
 
-// ── Functions ───────────────────────────────────────────────────────────────
-#[cold]
-#[inline(never)]
-const fn capacity_overflow() -> ! { panic!("capacity overflow"); }
-
-#[cold]
-fn handle_error(e: TryReserveError) -> ! {
-    match e.kind() {
-        CapacityOverflow => capacity_overflow(),
-        AllocError { layout, .. } => handle_alloc_error(layout)
-    }
-}
-
-
 // ── `Vec<T, A: Allocator>` Implementations ──────────────────────────────────
 impl<T, A: Allocator> Vec<T, A> {
     // ── Constants ───────────────────────────────────────────────────────────
@@ -115,4 +101,20 @@ impl<T, A: Allocator> Vec<T, A> {
 
     #[inline]
     pub const fn is_empty(&self) -> bool { self.len == 0 }
+
+
 }
+
+// ── Functions ───────────────────────────────────────────────────────────────
+#[cold]
+#[inline(never)]
+const fn capacity_overflow() -> ! { panic!("capacity overflow"); }
+
+#[cold]
+fn handle_error(e: TryReserveError) -> ! {
+    match e.kind() {
+        CapacityOverflow => capacity_overflow(),
+        AllocError { layout, .. } => handle_alloc_error(layout)
+    }
+}
+
