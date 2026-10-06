@@ -102,6 +102,11 @@ impl<T, A: Allocator> Vec<T, A> {
     #[inline]
     pub const fn is_empty(&self) -> bool { self.len == 0 }
 
+    pub fn layout(&self) -> Layout {
+        // SAFETY: The layout of `Vec` is always valid when called
+        // from this method.
+        unsafe { Layout::array::<T>(self.cap).unwrap_unchecked() }
+    }
 
 }
 
