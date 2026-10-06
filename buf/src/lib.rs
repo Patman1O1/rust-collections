@@ -52,7 +52,9 @@ impl<A: Allocator> Buf<A> {
     const DEFAULT_CAP: usize = 16;
 
     // ── Functions ───────────────────────────────────────────────────────────
-    
+    // TODO
+    pub fn new() -> Self { todo!() }
+
     // ── Methods ─────────────────────────────────────────────────────────────
     
 }
