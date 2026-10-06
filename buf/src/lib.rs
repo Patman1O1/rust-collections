@@ -55,6 +55,9 @@ impl<A: Allocator> Buf<A> {
     // TODO
     pub fn new() -> Self { todo!() }
 
+    // TODO
+    pub fn new_in() -> Self { todo!() }
+
     // ── Methods ─────────────────────────────────────────────────────────────
     
 }
