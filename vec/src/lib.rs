@@ -112,4 +112,7 @@ impl<T, A: Allocator> Vec<T, A> {
             core::slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len)
         }
     }
+
+    #[inline]
+    pub const fn is_empty(&self) -> bool { self.len == 0 }
 }
