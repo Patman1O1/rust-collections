@@ -85,6 +85,9 @@ impl<T, A: Allocator> Vec<T, A> {
     pub const fn allocator(&self) -> &A { &self.alloc }
 
     #[inline]
+    pub const fn capacity(&self) -> usize { self.cap }
+
+    #[inline]
     pub const fn as_ptr(&self) -> *const T { self.ptr.as_ptr() }
 
     #[inline]
