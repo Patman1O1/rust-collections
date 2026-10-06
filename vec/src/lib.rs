@@ -82,6 +82,9 @@ impl<T, A: Allocator> Vec<T, A> {
     
     // ── Methods ─────────────────────────────────────────────────────────────
     #[inline]
+    pub const fn allocator(&self) -> &A { &self.alloc }
+
+    #[inline]
     pub const fn as_ptr(&self) -> *const T { self.ptr.as_ptr() }
 
     #[inline]
