@@ -4,7 +4,6 @@ use core::{
         Layout
     },
     hint::cold_path,
-    marker::PhantomData,
     mem,
     ptr::NonNull
 };
@@ -39,84 +38,23 @@ mod alloc_init;
 #[cfg(test)]
 mod tests;
 
-// ── `struct Vec<T, A>` Definition ───────────────────────────────────────────
-pub struct Vec<T, A: Allocator = Global> {
-    ptr: NonNull::<T>,
+// ── `struct Buf<A>` Definition ──────────────────────────────────────────────
+pub struct Buf<A: Allocator = Global> {
+    ptr: NonNull::<[u8]>,
     cap: usize,
     len: usize,
-    alloc: A,
-    marker: PhantomData::<T>
+    alloc: A
 }
 
-// ── `Vec<T, A: Allocator>` Implementations ──────────────────────────────────
-impl<T, A: Allocator> Vec<T, A> {
+// ── `Buf<A: Allocator>` Implementations ─────────────────────────────────────
+impl<A: Allocator> Buf<A> {
     // ── Constants ───────────────────────────────────────────────────────────
     const DEFAULT_CAP: usize = 16;
 
-    const IS_ZST: bool = size_of::<T>() == 0;
-
     // ── Functions ───────────────────────────────────────────────────────────
-    pub fn new_in(alloc: A) -> Self {
-        Self {
-            ptr: NonNull::dangling(),
-            cap: if Self::IS_ZST { isize::MAX as usize } else { 0 },
-            len: 0,
-            alloc,
-            marker: PhantomData
-        }
-    }
     
     // ── Methods ─────────────────────────────────────────────────────────────
-    #[inline]
-    pub const fn allocator(&self) -> &A { &self.alloc }
-
-    #[inline]
-    pub const fn capacity(&self) -> usize { self.cap }
-
-    #[inline]
-    pub const fn len(&self) -> usize { self.len }
-
-    #[inline]
-    pub const fn as_ptr(&self) -> *const T { self.ptr.as_ptr() }
-
-    #[inline]
-    pub const fn as_mut_ptr(&mut self) -> *mut T { self.ptr.as_ptr() }
-
-    #[inline]
-    pub const fn as_non_null(&self) -> NonNull<T> { self.ptr }
-
-    #[inline]
-    pub const fn as_slice(&self) -> &[T] {
-        // SAFETY: `self.ptr` is non-null and aligned.
-        unsafe { core::slice::from_raw_parts(self.ptr.as_ptr(), self.len) }
-    }
-
-    #[inline]
-    pub const fn as_mut_slice(&mut self) -> &mut [T] {
-        // SAFETY `self.ptr` is non-null and aligned.
-        unsafe {
-            core::slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len)
-        }
-    }
-
-    #[inline]
-    pub const fn is_empty(&self) -> bool { self.len == 0 }
-
-    pub fn layout(&self) -> Layout {
-        // SAFETY: The layout of `Vec` is always valid when called
-        // from this method.
-        unsafe { Layout::array::<T>(self.cap).unwrap_unchecked() }
-    }
     
-    #[inline]
-    const fn needs_to_grow(&self, additional: usize) -> bool {
-        additional > self.cap - self.len
-    }
-
-    fn allocate(&mut self, n: usize) -> Result<(), TryReserveError> {
-        let layout = Layout::array::<T>(n)?;    
-        
-    }
 }
 
 // ── Functions ───────────────────────────────────────────────────────────────
