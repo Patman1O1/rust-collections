@@ -33,6 +33,9 @@ pub mod peek_mut;
 pub mod splice;
 
 // Private
+mod alloc_init;
+
+// Tests
 #[cfg(test)]
 mod tests;
 
@@ -58,19 +61,6 @@ fn handle_error(e: TryReserveError) -> ! {
     }
 }
 
-// ── `Vec<T>` Implementations ────────────────────────────────────────────────
-impl<T> Vec<T> {
-    // ── Functions ───────────────────────────────────────────────────────────
-    pub fn new() -> Self { Self::new_in(Global) }
-
-
-    // ── Methods ─────────────────────────────────────────────────────────────
-    #[inline]
-    pub const fn ptr(&self) -> *mut T { self.ptr.as_ptr() }
-
-    #[inline]
-    pub const fn non_null(&self) -> NonNull<T> { self.ptr }
-}
 
 // ── `Vec<T, A: Allocator>` Implementations ──────────────────────────────────
 impl<T, A: Allocator> Vec<T, A> {
@@ -91,4 +81,8 @@ impl<T, A: Allocator> Vec<T, A> {
     }
     
     // ── Methods ─────────────────────────────────────────────────────────────
+    pub const fn as_ptr(&self) -> *const T { self.ptr.as_ptr() }
+
+    pub const fn as_non_null(&self) -> NonNull<T> { self.ptr }
+
 }
