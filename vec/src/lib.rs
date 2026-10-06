@@ -81,17 +81,22 @@ impl<T, A: Allocator> Vec<T, A> {
     }
     
     // ── Methods ─────────────────────────────────────────────────────────────
+    #[inline]
     pub const fn as_ptr(&self) -> *const T { self.ptr.as_ptr() }
 
+    #[inline]
     pub const fn as_mut_ptr(&mut self) -> *mut T { self.ptr.as_ptr() }
 
+    #[inline]
     pub const fn as_non_null(&self) -> NonNull<T> { self.ptr }
 
+    #[inline]
     pub const fn as_slice(&self) -> &[T] {
         // SAFETY: `self.ptr` is non-null and aligned.
         unsafe { core::slice::from_raw_parts(self.ptr.as_ptr(), self.len) }
     }
 
+    #[inline]
     pub const fn as_mut_slice(&mut self) -> &mut [T] {
         // SAFETY `self.ptr` is non-null and aligned.
         unsafe {
