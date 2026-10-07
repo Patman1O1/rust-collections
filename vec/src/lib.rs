@@ -34,6 +34,7 @@ pub mod splice;
 
 // Private
 mod alloc_init;
+mod raw_vec;
 
 // Tests
 #[cfg(test)]
@@ -107,7 +108,16 @@ impl<T, A: Allocator> Vec<T, A> {
         // from this method.
         unsafe { Layout::array::<T>(self.cap).unwrap_unchecked() }
     }
+    
+    #[inline]
+    const fn needs_to_grow(&self, additional: usize) -> bool {
+        additional > self.cap - self.len
+    }
 
+    fn allocate(&mut self, n: usize) -> Result<(), TryReserveError> {
+        let layout = Layout::array::<T>(n)?;    
+        
+    }
 }
 
 // ── Functions ───────────────────────────────────────────────────────────────
